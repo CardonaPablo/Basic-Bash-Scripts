@@ -87,7 +87,7 @@ function print_main {
 	MAC_ADDRESS=$(find_property_value ether)
 
 	INTERFACE_NAME=$1
-	printf "%20s %s \e[47m%s\e[0m\n" " " "Interface:" $INTERFACE_NAME
+	printf "%20s %s \e[47;30m%s\e[0m\n" " " "Interface:" $INTERFACE_NAME
 	# printf "%25s \e[47m%s\e[0m\n" " " $INTERFACE_NAME
 	# printf "$ROW_FORMAT" "State" $STATE
 	printf "$ROW_FORMAT_ITALIC" "MAC Address" $MAC_ADDRESS
