@@ -33,11 +33,12 @@
 
 ROW_FORMAT="| \e[1;34m%-36s\e[0m %20s |\n"
 ROW_FORMAT_ITALIC="| \e[1;33m%-36s\e[0m \e[3m%20s\e[0m |\n"
+HALF_ROW_FORMAT="| \e[34m%-16s\e[0m \e[3m%10s\e[0m "
 
 function find_property_value {
 	PROPERTY_PATTERN=$1
 	PROPERTY_VALUE=$(ifconfig $interface | \
-		grep $PROPERTY_PATTERN | \
+		grep "$PROPERTY_PATTERN" | \
 		awk -v pattern="$PROPERTY_PATTERN" '
 		{
 			for(i=1;i<=NF;i++)
@@ -52,6 +53,24 @@ function find_property_value {
 	else
 		echo $PROPERTY_VALUE
 	fi
+}
+
+function find_RX_TX_property_value {
+
+	PROPERTY_PATTERN=$1
+	GREP_PATTERN=$2
+
+	PROPERTY_VALUE=$(ifconfig $interface | \
+		grep "$GREP_PATTERN" | \
+		awk -v pattern="$PROPERTY_PATTERN" '
+		{
+			for(i=1;i<=NF;i++)
+				if($i==pattern)
+					print $(i+1)
+		}'
+	)
+
+	echo $PROPERTY_VALUE
 }
 
 function print_section_title {
@@ -127,17 +146,66 @@ function print_ipv6 {
 
 }
 
-# function print_rx_tx {
+function print_rx_tx {
 
-# # ----------- RX ------------ | ----------- TX -----------
-# # Packets:			       66 | Packets: 				67
-# # Bytes: 			   (0.0B) | Bytes:	 			(0.0B)
-# # Errors:			   	    0 | Errors: 				 0	
-# # Dropped: 		   			0 | Dropped: 				 0	
-# # Overruns: 		   		0 | Overruns: 				 0	
-# # Carriers: 		   		0 | Carriers: 				 0	
-# # Collision: 		   		0 | Collision: 				 0
-# }
+	separator=------------- 
+	printf "%s \e[4m%s\e[0m %s|" $separator "RX" $separator
+	printf "%s \e[4m%s\e[0m %s\n" $separator "TX" $separator
+
+	RX_PACKETS=$(find_RX_TX_property_value packets RX)
+	RX_BYTES=$(find_RX_TX_property_value bytes RX)
+	RX_ERRORS=$(find_RX_TX_property_value errors RX)
+	RX_DROPPED=$(find_RX_TX_property_value dropped RX)
+	RX_OVERRUNS=$(find_RX_TX_property_value overruns RX)
+	RX_FRAME=$(find_RX_TX_property_value frame RX)
+
+	TX_PACKETS=$(find_RX_TX_property_value packets TX)
+	TX_BYTES=$(find_RX_TX_property_value bytes TX)
+	TX_ERRORS=$(find_RX_TX_property_value errors TX)
+	TX_DROPPED=$(find_RX_TX_property_value dropped TX)
+	TX_OVERRUNS=$(find_RX_TX_property_value overruns TX)
+	TX_CARRIER=$(find_RX_TX_property_value carrier TX)
+	TX_COLLISIONS=$(find_RX_TX_property_value collisions TX)
+
+	printf "$HALF_ROW_FORMAT" "Packets" $RX_PACKETS
+	printf "$HALF_ROW_FORMAT" "Packets" $TX_PACKETS
+	printf "%s\n" "|"
+
+	printf "$HALF_ROW_FORMAT" "Bytes" $RX_BYTES
+	printf "$HALF_ROW_FORMAT" "Bytes" $TX_BYTES
+	printf "%s\n" "|"
+
+	printf "$HALF_ROW_FORMAT" "Errors" $RX_ERRORS
+	printf "$HALF_ROW_FORMAT" "Errors" $TX_ERRORS
+	printf "%s\n" "|"
+
+	printf "$HALF_ROW_FORMAT" "Dropped" $RX_DROPPED
+	printf "$HALF_ROW_FORMAT" "Dropped" $TX_DROPPED
+	printf "%s\n" "|"
+
+	printf "$HALF_ROW_FORMAT" "Overruns" $RX_OVERRUNS
+	printf "$HALF_ROW_FORMAT" "Overruns" $TX_OVERRUNS
+	printf "%s\n" "|"
+
+	printf "$HALF_ROW_FORMAT" "Frame" $RX_FRAME
+	printf "$HALF_ROW_FORMAT" "Carrier" $TX_CARRIER
+	printf "%s\n" "|"
+
+	printf "$HALF_ROW_FORMAT" "" ""
+	printf "$HALF_ROW_FORMAT" "Collisions" $TX_COLLISIONS
+	printf "%s\n" "|"
+
+
+# (30)							(30) 
+# ----------- RX ------------ | ----------- TX -----------
+# Packets:			       66 | Packets: 				67
+# Bytes: 			   	 0.0B | Bytes:	 			  0.0B
+# Errors:			   	    0 | Errors: 				 0	
+# Dropped: 		   			0 | Dropped: 				 0	
+# Overruns: 		   		0 | Overruns: 				 0	
+# Frame: 		   			0 | Carrier: 				 0	
+# 							  | Collisions: 			 0
+}
 
 function run {
 	INTERFACES=()
@@ -161,7 +229,8 @@ function run {
 		print_main $interface
 		print_ipv4 $interface
 		print_ipv6 $interface
+		print_rx_tx $interface
 	done
 }
 
-run | more -20
+run | more -22
