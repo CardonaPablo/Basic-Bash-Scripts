@@ -11,12 +11,12 @@ function set_permissions() {
 	# 1 Char action + - =
 	# 3 Char permissoins r w x
 	OPTIONS="$SCOPE_SELECTED$OPERATOR_SELECTED$PERMISSION_SELECTED"
-	echo "Running $OPTIONS"
+	echo "Executing chmod $OPTIONS"
 	chmod $OPTIONS $FILE_PATH
 
 	IFS=' '     # : is set as delimiter
 	read -ra LINE <<< $(ls -la $FILE_PATH)   # str is read into an array as tokens separated by IFS
-	printf "%30s %s \n\n" "Permisos actualizados: " ${LINE[0]}
+	printf "\n \e[1m%30s\e[0m %s \n\n" "Permisos actualizados: " ${LINE[0]}
 }
 
 function read_scope_option {
@@ -64,7 +64,7 @@ function print_operator_menu {
 	print_header
 	printf "%-30s [%s] \n" "Agregar permiso" "+"
 	printf "%-30s [%s] \n" "Quitar permiso" "-"
-	printf "%-30s [%s] \n\n" "Dejar igual" "="
+	printf "%-30s [%s] \n\n" "Quitar todos y solo dejar" "="
 	# printf "\e[1;37m%-31s\e[0m [%d] \n\n" "volver" "4"
 	read_operator_option
 	set_permissions
